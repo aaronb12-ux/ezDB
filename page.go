@@ -21,7 +21,7 @@ func MakePage(size int) *Page {
 	}
 }
 
-
+//write bytes to the page
 func (p *Page) Write(offset int, data []byte) (int, error) {
 	
 	if offset + len(data) > p.Size() {
@@ -34,6 +34,8 @@ func (p *Page) Write(offset int, data []byte) (int, error) {
 
 }
 
+
+//read bytes from a page
 func (p *Page) Read(offset int, dst []byte) int {
 
 	res := copy(dst, p.bytes[offset:])
