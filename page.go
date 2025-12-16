@@ -12,7 +12,6 @@ type Page struct {
 	bytes []byte
 }
 
-
 //create a page
 func MakePage(size int) *Page {
 
@@ -25,12 +24,12 @@ func MakePage(size int) *Page {
 func (p *Page) Write(offset int, data []byte) (int, error) {
 	
 	if offset + len(data) > p.Size() {
-		return 0, errors.New("page length exceeded.")
+		return 0, errors.New("page length exceeded")
 	} 
 
 	res := copy(p.bytes[offset:], data)
 
-	return res, nil
+	return res, nil //res contains the number of bytes written to the page
 
 }
 
