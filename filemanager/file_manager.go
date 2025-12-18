@@ -26,7 +26,6 @@ type ReadWriteLogEntry struct {
 func  NewFileMgr(blocksize int) *Filemgr {
 	return &Filemgr{
 		blocksize: blocksize,
-		openedFile: os.NewFile(uintptr(10), "mydb.db"),
 		filename: "mydb.db",
 	}
 }
@@ -66,28 +65,30 @@ func (fm *Filemgr) Read(blk *BlockID, p *Page) error {
 
 func (fm *Filemgr) Write(blk *BlockID, p *Page) error {
 
-	f := fm.OpenFile(fm.filename)
+	fmt.Println("the page bytes are", p.Bytes())
 
-	offset := int64(blk.Number * fm.blocksize)
+	f := fm.OpenFile(fm.filename) //open the file
 
-	_, err := f.Seek(offset, 0)
+	offset := int64(blk.Number * fm.blocksize) //get the offset in the file (this is where we begin our write)
 
-	if err != nil {
-		return fmt.Errorf("error offsetting file %v", err)
+	_, err := f.Seek(offset, 0) //seeking to the offset relative to the origin
+
+	if err != nil { //if there is an error seeking to the offset
+		return fmt.Errorf("error offsetting file %v", err) 
 	}
 
-	bytesWritten, err := f.Write(p.Bytes())
+	bytesWritten, err := f.Write(p.Bytes()) //writing to the file the bytes from the page
 
-	if err != nil {
+	if err != nil { //if there is an error writing the bytes
 		return fmt.Errorf("error writing bytes to the file %v", err)
 	}
 
-	if bytesWritten != fm.blocksize {
+	if bytesWritten != fm.blocksize { //if we do not write the appropriate amount of bytes
 		return fmt.Errorf("incomplete write: expected %d bytes, wrote %d", fm.blocksize, bytesWritten)
 	}
 
 
-	newWriteEntry := ReadWriteLogEntry{ //create new read log object
+	newWriteEntry := ReadWriteLogEntry{ //create new writing log object
 		Timestamp: time.Now(),
 		BlockId: blk.Number,
 		BytesAmount: bytesWritten,
@@ -102,11 +103,18 @@ func (fm *Filemgr) Write(blk *BlockID, p *Page) error {
 
 func (fm *Filemgr) OpenFile(filename string) *os.File  {
 
-	n, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	n, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, os.ModeAppend) //open the file
+ 
+	fm.openedFile = n 
 
 	if err != nil {
 		log.Fatalf("error opening file %v", err)
 	}
 
-	return n
+	return fm.openedFile
+
+}
+
+func (fm *Filemgr) GetWriteLog() []ReadWriteLogEntry {
+	return fm.writeLog
 }
