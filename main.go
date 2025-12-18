@@ -2,19 +2,24 @@ package main
 
 import (
 	"aaron/simpleDB/filemanager"
+	"fmt"
 )
 
 
 func main() {
 
-	fm := filemanager.NewFileMgr(5)
 
-	var block filemanager.BlockID
+	filemgr := filemanager.NewFileMgr(5)
 
-	block.Filename = "mydb.db"
-
+	block := filemanager.MakeBlock("mydb.db", 0)
 	page := filemanager.MakePage(5)
+
+	err := filemgr.Write(block, page)
+
+	fmt.Println(err)
+
 	
+
 }
 
 

@@ -2,18 +2,32 @@ package filemanager
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"time"
 )
 
 type Filemgr struct {
 	blocksize int //how big each chunk of data should be
+	filename string
 	openedFile *os.File //file currently in use
+	readLog []ReadWriteLogEntry
+	writeLog []ReadWriteLogEntry
 }
 
-func NewFileMgr(blocksize int) *Filemgr {
+
+type ReadWriteLogEntry struct {
+	Timestamp time.Time
+	BlockId int
+	BytesAmount int
+
+}
+
+func  NewFileMgr(blocksize int) *Filemgr {
 	return &Filemgr{
 		blocksize: blocksize,
 		openedFile: os.NewFile(uintptr(10), "mydb.db"),
+		filename: "mydb.db",
 	}
 }
 
@@ -38,5 +52,61 @@ func (fm *Filemgr) Read(blk *BlockID, p *Page) error {
 	if bytesRead != fm.blocksize {
 		return fmt.Errorf("incomplete read: expected %d bytes, got %d", fm.blocksize, bytesRead)
 	}
+
+	newReadEntry := ReadWriteLogEntry{ //create new read log object
+		Timestamp: time.Now(),
+		BlockId: blk.Number,
+		BytesAmount: bytesRead,
+	}
+
+	fm.readLog = append(fm.readLog, newReadEntry)
 	return nil
+}
+
+
+func (fm *Filemgr) Write(blk *BlockID, p *Page) error {
+
+	f := fm.OpenFile(fm.filename)
+
+	offset := int64(blk.Number * fm.blocksize)
+
+	_, err := f.Seek(offset, 0)
+
+	if err != nil {
+		return fmt.Errorf("error offsetting file %v", err)
+	}
+
+	bytesWritten, err := f.Write(p.Bytes())
+
+	if err != nil {
+		return fmt.Errorf("error writing bytes to the file %v", err)
+	}
+
+	if bytesWritten != fm.blocksize {
+		return fmt.Errorf("incomplete write: expected %d bytes, wrote %d", fm.blocksize, bytesWritten)
+	}
+
+
+	newWriteEntry := ReadWriteLogEntry{ //create new read log object
+		Timestamp: time.Now(),
+		BlockId: blk.Number,
+		BytesAmount: bytesWritten,
+	}
+
+	fm.writeLog = append(fm.writeLog, newWriteEntry)
+
+	return nil
+
+}
+
+
+func (fm *Filemgr) OpenFile(filename string) *os.File  {
+
+	n, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+
+	if err != nil {
+		log.Fatalf("error opening file %v", err)
+	}
+
+	return n
 }

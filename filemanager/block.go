@@ -6,3 +6,11 @@ type BlockID struct {
 	Number int //the block in the file
 }
 
+
+func MakeBlock(filename string, number int) *BlockID {
+		return &BlockID{
+			Filename: filename,
+			Number: number,
+		}
+}
+
