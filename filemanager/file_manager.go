@@ -59,6 +59,7 @@ func (fm *Filemgr) Read(blk *BlockID, p *Page) error {
 	}
 
 	fm.readLog = append(fm.readLog, newReadEntry)
+	
 	return nil
 }
 
@@ -99,7 +100,6 @@ func (fm *Filemgr) Write(blk *BlockID, p *Page) error {
 	return nil
 
 }
-
 
 func (fm *Filemgr) OpenFile(filename string) *os.File  {
 
