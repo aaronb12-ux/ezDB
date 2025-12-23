@@ -3,6 +3,7 @@ package filemanager
 import (
 
 	"errors"
+	"fmt"
 
 )
 
@@ -22,12 +23,16 @@ func MakePage(size int) *Page {
 
 //write bytes to the page
 func (p *Page) Write(offset int, data []byte) (int, error) {
+
+
 	
 	if offset + len(data) > p.Size() {
 		return 0, errors.New("page length exceeded")
 	} 
 
 	res := copy(p.bytes[offset:], data)
+
+	fmt.Println("the return value is for the page copy:", res)
 
 	return res, nil //res contains the number of bytes written to the page
 

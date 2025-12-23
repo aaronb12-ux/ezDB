@@ -20,6 +20,7 @@ type ReadWriteLogEntry struct {
 	Timestamp time.Time
 	BlockId int
 	BytesAmount int
+	Bytes string
 
 }
 
@@ -43,6 +44,7 @@ func (fm *Filemgr) Read(blk *BlockID, p *Page) error {
 	}
 
 	bytesRead, err := f.Read(p.Bytes())
+	//the read starts ON the offset. so if the offset is 10, the "f[10]"" is included in the read
 
 	if err != nil {
 		return fmt.Errorf("failed to read block %v: %v", blk, err)
@@ -56,11 +58,13 @@ func (fm *Filemgr) Read(blk *BlockID, p *Page) error {
 		Timestamp: time.Now(),
 		BlockId: blk.Number,
 		BytesAmount: bytesRead,
+		Bytes: string(p.bytes),
 	}
 
-	fmt.Println("the new read entry is", newReadEntry)
 
 	fm.readLog = append(fm.readLog, newReadEntry)
+
+	fmt.Printf("we just read the bytes %v", string(p.bytes))
 	
 	return nil
 }
@@ -95,6 +99,7 @@ func (fm *Filemgr) Write(blk *BlockID, p *Page) error {
 		Timestamp: time.Now(),
 		BlockId: blk.Number,
 		BytesAmount: bytesWritten,
+		Bytes: string(p.bytes),
 	}
 
 	fm.writeLog = append(fm.writeLog, newWriteEntry)

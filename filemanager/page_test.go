@@ -53,7 +53,7 @@ func TestWriteOffSet(t *testing.T) {
 
 	data := []byte("Cosmo, is awesome!")
 
-	n, err := page.Write(2, data) //writing to page starting at offset 4. When we offset, we write from [offset : end of page].
+	n, err := page.Write(2, data) //writing to page starting at offset 2. When we offset, we write from [offset : end of page].
 
 	if err != nil {
 		t.Fatalf("Write to page failed %v", err)
