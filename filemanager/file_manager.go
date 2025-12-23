@@ -24,7 +24,7 @@ type ReadWriteLogEntry struct {
 
 }
 
-func  NewFileMgr(blocksize int) *Filemgr {
+func NewFileMgr(blocksize int) *Filemgr {
 	return &Filemgr{
 		blocksize: blocksize,
 		filename: "simple.db",

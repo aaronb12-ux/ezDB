@@ -101,7 +101,4 @@ func TestReadWriteOffset(t *testing.T) {
 	filemgr.Write(block0, page0)
 	filemgr.Write(block1, page1)
 	filemgr.Write(block2, page2)
-
-
-
 }

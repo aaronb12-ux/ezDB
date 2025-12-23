@@ -1,31 +1,15 @@
 package main
 
 import (
-	"aaron/simpleDB/filemanager"
-	"fmt"
-	
-)
+	//"aaron/simpleDB/filemanager"
+	//"fmt"
+	"aaron/simpleDB/btree"
 
+)
 
 func main() {
 
-
-	filemgr := filemanager.NewFileMgr(5) //each block (and page stores 5 bytes)
-
-	block := filemanager.MakeBlock("mydb.db", 0) //creating a block
-
-	page := filemanager.MakePage(5)
-
-	err := filemgr.Write(block, page)
-
-	fmt.Println(err)
-
-	fmt.Println(filemgr.GetWriteLog())
-
-
-
-
-
+	tree := btree.MakeTree(4) //tree can have 4 children, but 3 keys in each node
 
 	
 }
