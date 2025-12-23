@@ -3,13 +3,14 @@ package filemanager_test
 import (
 	"aaron/simpleDB/filemanager"
 	"testing"
+	"fmt"
 )
 
 func TestWriteToFile(t *testing.T) {
 
-	filemgr := filemanager.NewFileMgr(5) //new file manager that stores blocks of 5
+	filemgr := filemanager.NewFileMgr(5)
 
-	block1 := filemanager.MakeBlock("mydb.db", 0) //database file and block number
+	block1 := filemanager.MakeBlock("simple.db", 0) //database file and block number
 
 	page1 := filemanager.MakePage(5) //page stores 5 bytes
 
@@ -25,20 +26,16 @@ func TestWriteToFile(t *testing.T) {
 		t.Fatalf("error writing to the file %v", e)
 	}
 
+	page2 := filemanager.MakePage(5)
+
+	e1 := filemgr.Read(block1, page2)
+
+	if e1 != nil {
+		t.Fatalf("error reading from the file from block %d. the error is: %v", block1.Number, e1)
+	}
+
+	fmt.Println(filemgr.GetReadLog())
+
+	//bytes are in the database file. read the bytes from the file to the page. then read from the page to show the actual bytes
 }
 
-func TestReadFromFile(t *testing.T) {
-	filemgr := filemanager.NewFileMgr(5)
-
-	block := filemanager.MakeBlock("mydb.db", 1) //should return b___1
-
-	page := filemanager.MakePage(5)
-
-	e := filemgr.Read(block, page)
-
-	
-
-	//need to read from block in file and store into page -> page.Read returns the bytes from the page AFTER reading from the file
- 
-
-}

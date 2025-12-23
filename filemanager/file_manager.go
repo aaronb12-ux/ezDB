@@ -26,7 +26,7 @@ type ReadWriteLogEntry struct {
 func  NewFileMgr(blocksize int) *Filemgr {
 	return &Filemgr{
 		blocksize: blocksize,
-		filename: "mydb.db",
+		filename: "simple.db",
 	}
 }
 
@@ -48,7 +48,7 @@ func (fm *Filemgr) Read(blk *BlockID, p *Page) error {
 		return fmt.Errorf("failed to read block %v: %v", blk, err)
 	}
 
-	if bytesRead != fm.blocksize {
+	if bytesRead != fm.blocksize && bytesRead != 0 {
 		return fmt.Errorf("incomplete read: expected %d bytes, got %d", fm.blocksize, bytesRead)
 	}
 
@@ -57,6 +57,8 @@ func (fm *Filemgr) Read(blk *BlockID, p *Page) error {
 		BlockId: blk.Number,
 		BytesAmount: bytesRead,
 	}
+
+	fmt.Println("the new read entry is", newReadEntry)
 
 	fm.readLog = append(fm.readLog, newReadEntry)
 	
@@ -103,7 +105,7 @@ func (fm *Filemgr) Write(blk *BlockID, p *Page) error {
 
 func (fm *Filemgr) OpenFile(filename string) *os.File  {
 
-	n, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, os.ModeAppend) //open the file
+	n, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0644) //open the file
  
 	fm.openedFile = n 
 
@@ -117,4 +119,8 @@ func (fm *Filemgr) OpenFile(filename string) *os.File  {
 
 func (fm *Filemgr) GetWriteLog() []ReadWriteLogEntry {
 	return fm.writeLog
+}
+
+func (fm *Filemgr) GetReadLog() []ReadWriteLogEntry {
+	return fm.readLog
 }
