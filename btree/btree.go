@@ -1,18 +1,9 @@
 package btree
 
 type BTree struct {
-	Root *InternalNode
+	Root *Node
 	Order int //max number of the children the INTERNAL NODE can have. and defines the number of keys an internal node can have which is Order - 1
-}
-
-type LeafNode struct {
-	Data []Key
-	Right *LeafNode
-	Parent *InternalNode
-}
-
-type InternalNode struct {
-    Key int
+	Size int //number of keys
 }
 
 type Key struct {
@@ -20,4 +11,10 @@ type Key struct {
 	Value []byte
 }
 
-//basically how do we know if 
+type Node struct {
+	Data *[]Key //data is an array of Keys (only for leaf nodes)
+	Children *[]int //for internal nodes. they have children
+	Next *int //only for leaf nodes
+	Keys *[]int //for internal nodes. internal nodes have an array of keys which are used for the searching
+}
+
