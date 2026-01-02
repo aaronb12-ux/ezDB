@@ -129,3 +129,11 @@ func (fm *Filemgr) GetWriteLog() []ReadWriteLogEntry {
 func (fm *Filemgr) GetReadLog() []ReadWriteLogEntry {
 	return fm.readLog
 }
+
+func (fm *Filemgr) Filename() string {
+	return fm.filename
+}
+
+func (fm *Filemgr) BlockSize() int {
+	return fm.blocksize
+}
