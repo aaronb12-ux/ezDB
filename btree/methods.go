@@ -1,7 +1,5 @@
 package btree
 
-package btree
-
 import (
 	"fmt"
 	"sort"
