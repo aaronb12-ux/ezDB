@@ -227,5 +227,46 @@ func (tree *BTree) deserializeNode(page *filemanager.Page) (*Node, error) {
 
 }
 
+//function writes a node to disk at the specified block number
+func (tree *BTree) writeNode(blockNum int, node *Node) error {
+
+	//creating a page for memory buffer
+	page := filemanager.MakePage(tree.FileMgr.BlockSize())
+
+	//serialize the node (write to the page)
+	err := tree.serializeNode(node, page)
+
+	if err != nil {
+		return err
+	}
+
+	//creating the id for the block
+	blk := filemanager.MakeBlock(tree.FileMgr.Filename(), blockNum)
+
+	//write the block to the disk
+	return tree.FileMgr.Write(blk, page) //where in the file manager to write the page (at the block id)
+}
+
+//want to read data from a block into a page
+func (tree *BTree) readNode(blocknum int) (*Node, error) {
+
+	//create a page
+	page := filemanager.MakePage(tree.FileMgr.BlockSize())
+
+	//want to read the contents from the disk to the page then deserialize the page
+	blk := filemanager.MakeBlock(tree.FileMgr.Filename(), blocknum)
+
+	//read the contents at the block number on disk to the page
+	err := tree.FileMgr.Read(blk, page)
+
+	if err != nil {
+		return nil, err
+	}
+
+	//take the data on the page and convert it into a node we can use in the program
+	return tree.deserializeNode(page)
+
+}
+
 
 
