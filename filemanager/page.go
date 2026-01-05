@@ -3,7 +3,6 @@ package filemanager
 import (
 
 	"errors"
-	"fmt"
 
 )
 
@@ -32,7 +31,6 @@ func (p *Page) Write(offset int, data []byte) (int, error) {
 
 	res := copy(p.bytes[offset:], data)
 
-	fmt.Println("the return value is for the page copy:", res)
 
 	return res, nil //res contains the number of bytes written to the page
 

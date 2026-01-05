@@ -137,3 +137,8 @@ func (fm *Filemgr) Filename() string {
 func (fm *Filemgr) BlockSize() int {
 	return fm.blocksize
 }
+
+func (fm *Filemgr) GetOpenedFile() *os.File {
+    return fm.openedFile
+}
+
