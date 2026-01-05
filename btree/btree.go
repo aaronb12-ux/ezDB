@@ -145,4 +145,87 @@ func (tree *BTree) serializeNode(node *Node, page *filemanager.Page) error {
 		return nil
 }
 
+func (tree *BTree) deserializeNode(page *filemanager.Page) (*Node, error) {
+	//take data from page and load it into a node
+
+	node := &Node{} //create new node
+	offset := 0
+
+	//reading the leaf byte from the page
+	isLeafBytes := make([]byte, 1)
+	page.Read(offset, isLeafBytes)
+	node.IsLeaf = isLeafBytes[0] == 1
+	offset += 1
+
+	//Read NumKeys
+	numberOfKeysAsBytes := make([]byte, INT_SIZE)
+	page.Read(offset, numberOfKeysAsBytes)
+	node.NumKeys = int(binary.BigEndian.Uint32(numberOfKeysAsBytes))
+	offset += INT_SIZE
+
+	//Read NextBlock
+	nextBlock := make([]byte, INT_SIZE)
+	page.Read(offset, nextBlock)
+	node.NextBlock = int(binary.BigEndian.Uint32(nextBlock))
+	offset += INT_SIZE
+
+	//Read ParentBlock
+	parentBlock := make([]byte, INT_SIZE)
+	page.Read(offset, parentBlock)
+	node.ParentBlock = int(binary.BigEndian.Uint32(parentBlock))
+	offset += INT_SIZE
+
+
+	//allocate full order size for keys
+
+	node.Keys = make([]int, tree.Order)
+
+	//read the keys
+	for i := 0; i < node.NumKeys; i ++ {
+		keyBytes := make([]byte, INT_SIZE)
+		page.Read(offset, keyBytes)
+		node.Keys[i] = int(binary.BigEndian.Uint32(keyBytes))
+		offset += INT_SIZE
+	}
+
+
+	if node.IsLeaf {
+
+		//allocate full order size
+		node.Values = make([][]byte, tree.Order)
+
+		for i := 0; i < node.NumKeys; i++ {
+
+			//read value length of the value
+			lengthOfValue := make([]byte, INT_SIZE)
+			page.Read(offset, lengthOfValue)
+			valLength := binary.BigEndian.Uint32(lengthOfValue)
+			offset += INT_SIZE
+
+			//reading the value itself
+			node.Values[i] = make([]byte, valLength)
+			page.Read(offset, node.Values[i])
+			offset += INT_SIZE
+		}
+	} else {
+
+		//allocate space for child blocks
+		node.ChildBlocks = make([]int, tree.Order + 1)
+
+		for i := 0; i <= node.NumKeys; i++ {
+			
+			//reading child block bytes
+			childBlockBytes := make([]byte, INT_SIZE)
+			page.Read(offset, childBlockBytes) 
+			node.ChildBlocks[i] = int(binary.BigEndian.Uint32(childBlockBytes))
+			offset += INT_SIZE
+		}
+	}
+
+
+	return node, nil
+
+}
+
+
 
