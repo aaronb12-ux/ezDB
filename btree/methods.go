@@ -59,5 +59,38 @@ func (tree *BTree) findLeafBlock(key int) (int, error) {
 }
 
 
+func (tree *BTree) Insert(key int, value []byte) error {
+
+	if tree.RootBlockNum == -1 { //if tree is empty...
+		blockNum := tree.allocateBlock() 
+
+		leaf := &Node{ //create first root node
+
+			IsLeaf: true,
+			NumKeys: 1,
+			Keys: make([]int, tree.Order),
+			Values: make([][]byte, tree.Order),
+			NextBlock: -1,
+			ParentBlock: -1,
+		}
+
+		leaf.Keys[0] = key //fill in values
+		leaf.Values[0] = value
+
+		err := tree.writeNode(blockNum, leaf) //write node to disk at block 'blockNum'
+
+		if err != nil {
+			return err
+		}
+
+		tree.RootBlockNum = blockNum
+		tree.Size = 1
+		tree.Height = 1
+		return nil
+		
+	}
+}
+
+
 
 
