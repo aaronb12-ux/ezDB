@@ -87,8 +87,95 @@ func (tree *BTree) Insert(key int, value []byte) error {
 		tree.Size = 1
 		tree.Height = 1
 		return nil
-		
 	}
+
+	leafBlockNum, err := tree.findLeafBlock(key) //get the block number of the node where the key should be at
+
+	if err != nil {
+		return err
+	}
+
+	leaf, err := tree.readNode(leafBlockNum) //take the block data from the disk and read it into a page which is then converted to a node
+
+	if err != nil {
+		return err
+	}
+
+	existed := tree.insertIntoLeaf(leaf, key, value) //insert the key value pair into the leaf
+
+	if existed { //updating the value if it exists already and writing to the disk
+
+		err = tree.writeNode(leafBlockNum, leaf) //write the updated leaf (node) back to the disk
+		return err
+	}
+
+	tree.Size++ 
+
+	err = tree.writeNode(leafBlockNum, leaf) //now write the inserted node to the disk
+
+	if err != nil {
+		return err
+	}
+
+	if leaf.NumKeys > tree.Order-1 { //perform a split if the number of keys in the leaf node is greater than order - 1 (b+ tree rule)
+		return tree.splitLeaf(leafBlockNum, leaf)
+	}
+
+	return nil
+}
+
+func (tree *BTree) insertIntoLeaf(leaf *Node, key int, value []byte) bool {
+
+	i := sort.SearchInts(leaf.Keys[:leaf.NumKeys], key) //finds the index of where we should insert the new key in the existing keys (sorted)
+
+	if i < leaf.NumKeys && leaf.Keys[i] == key { //if KEY already exists!
+		leaf.Values[i] = value
+		return true
+	}
+
+
+	for j := leaf.NumKeys; j > i; j-- { //shift over all values to the right of the insertion index
+		leaf.Keys[j] = leaf.Keys[j - 1]
+		leaf.Values[j] = leaf.Values[j - 1]
+	}
+
+	leaf.Keys[i] = key //insert new key value pair
+	leaf.Values[i] = value
+	leaf.NumKeys++
+
+	return false
+
+}
+
+
+func (tree *BTree) splitLeaf(leafBlockNum int, leaf *Node) error {
+
+	mid := leaf.NumKeys / 2 //find middle index for split
+
+	rightBlockNum := tree.allocateBlock() //allocate new block for the new right block for the spli
+
+	rightLeaf := &Node{ //create new node which will be set as the new block
+		IsLeaf: true,
+		NumKeys: leaf.NumKeys - mid, //number of keys we are moving to the new node
+		Keys: make([]int, tree.Order),
+		Values: make([][]byte, tree.Order),
+		NextBlock: leaf.NextBlock,
+		ParentBlock: leaf.ParentBlock,
+	}
+
+	copy(rightLeaf.Keys, leaf.Keys[mid:leaf.NumKeys]) //copying over the corresponding keys to the new node
+	copy(rightLeaf.Values, leaf.Values[mid:leaf.NumKeys]) //copying over the corresponding values to the new node
+	leaf.NumKeys = mid
+	leaf.NextBlock = rightBlockNum
+
+	//now write the new node to the disk
+
+	err := tree.writeNode(rightBlockNum, rightLeaf)
+
+	if err != nil {
+		return err
+	}
+
 }
 
 
