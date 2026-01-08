@@ -230,7 +230,7 @@ func (tree *BTree) createNewRoot(leftBlockNum int, rightBlockNum int, key int) e
 }
 
 func (tree *BTree) insertIntoParent(parentBlockNum int, key int, rightChildBlockNum int) error {
-	//take a key and insert it into the parent 
+	//take a key and insert it into the parent at parentBlockNum
 
 	parent, err := tree.readNode(parentBlockNum)
 
@@ -240,20 +240,36 @@ func (tree *BTree) insertIntoParent(parentBlockNum int, key int, rightChildBlock
 
 	i := sort.SearchInts(parent.Keys[:parent.NumKeys], key) //finding the index of where the key should be placed in the parent keys
 
+	/*
+		//parentKeys = [1, 5] and we are inserting 4
+
+		i = 1
+
+		j = 2
+
+		parentKeys = [1, 5, 5]
+
+		parentKeys = [1, 4, 5]
+
+	*/
+	
 	for j := parent.NumKeys; j > i; j-- {
-		parent.Keys[j] = parent.Keys[j-1] //shift all existing keys over to the right
-		parent.ChildBlocks[j+1] = parent.ChildBlocks[j]
+		parent.Keys[j] = parent.Keys[j-1] //shift all keys greater than our insertion key to the right
+		parent.ChildBlocks[j+1] = parent.ChildBlocks[j] //?
 	}
 
-	parent.Keys[i] = key
+	parent.Keys[i] = key //put in new key
 	parent.ChildBlocks[i + 1] = rightChildBlockNum
 	parent.NumKeys++
 
+	//update right childs parentBlock
 	rightChild, _ := tree.readNode(rightChildBlockNum)
 	rightChild.ParentBlock = parentBlockNum
 	tree.writeNode(rightChildBlockNum, rightChild)
 	
+	//write the parent back to the disk after updates are complete
 	err = tree.writeNode(parentBlockNum, parent)
+
 	if err != nil {
 		return err
 	}
@@ -263,6 +279,47 @@ func (tree *BTree) insertIntoParent(parentBlockNum int, key int, rightChildBlock
 	}
 
 	return nil
+}
+ 
+func (tree *BTree) splitInternal(nodeBlockNum int, node *Node) error {
+
+	mid := node.NumKeys / 2
+	promoteKey := node.Keys[mid] //key we are moving 'promoting' to the parent
+
+	rightBlockNum := tree.allocateBlock() //create new block for new node we are making
+
+	rightNode := &Node{ //new node
+		IsLeaf: false,
+		NumKeys: node.NumKeys - mid - 1,
+		Keys: make([]int, tree.Order),
+		ChildBlocks: make([]int, tree.Order+1),
+		ParentBlock: node.ParentBlock,
+	}
+
+	//fill in the new node with all values to the right of the promote key
+	copy(rightNode.Keys, node.Keys[mid + 1: node.NumKeys])
+	copy(rightNode.ChildBlocks, node.ChildBlocks[mid + 1: node.NumKeys + 1]) 
+
+	for i := 0; i <= rightNode.NumKeys; i++ {
+		//iterate through all the keys in the new node and assign the child's parent this new right node
+		child, _ := tree.readNode(rightNode.ChildBlocks[i])
+		child.ParentBlock = rightBlockNum
+		tree.writeNode(rightNode.ChildBlocks[i], child)
+	}
+
+	//update the number of keys for the node since we split it
+	node.NumKeys = mid
+
+	//flush back to the disk
+	tree.writeNode(nodeBlockNum, node)
+	tree.writeNode(rightBlockNum, rightNode)
+
+	if node.ParentBlock == -1 {
+		return tree.createNewRoot(nodeBlockNum, rightBlockNum, promoteKey)
+	}
+
+	return tree.insertIntoParent(node.ParentBlock, promoteKey, rightBlockNum) //insert the promote key into the parent
+
 }
 
 
