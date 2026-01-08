@@ -128,13 +128,13 @@ func (tree *BTree) insertIntoLeaf(leaf *Node, key int, value []byte) bool {
 
 	i := sort.SearchInts(leaf.Keys[:leaf.NumKeys], key) //finds the index of where we should insert the new key in the existing keys (sorted)
 
-	if i < leaf.NumKeys && leaf.Keys[i] == key { //if KEY already exists!
+	if i < leaf.NumKeys && leaf.Keys[i] == key { //if KEY already exists! just modify the value (this is the update operation)
 		leaf.Values[i] = value
 		return true
 	}
 
 
-	for j := leaf.NumKeys; j > i; j-- { //shift over all values to the right of the insertion index
+	for j := leaf.NumKeys; j >= i; j-- { //shift over all values to the right of the insertion index
 		leaf.Keys[j] = leaf.Keys[j - 1]
 		leaf.Values[j] = leaf.Values[j - 1]
 	}
@@ -170,12 +170,99 @@ func (tree *BTree) splitLeaf(leafBlockNum int, leaf *Node) error {
 
 	//now write the new node to the disk
 
-	err := tree.writeNode(rightBlockNum, rightLeaf)
+	err := tree.writeNode(leafBlockNum, leaf) //write the leaf to the disk at its block number
+
+	if err != nil {
+		return err
+	}
+ 
+	err = tree.writeNode(rightBlockNum, rightLeaf) //write the new split leaf to the disk at its blkck number
+
+	promoteKey := rightLeaf.Keys[0] //take the first key in the new split right node and move it to the parent
+
+
+	if leaf.ParentBlock == -1 {
+		//promote key is now the root
+		return tree.createNewRoot(leafBlockNum, rightBlockNum, promoteKey)
+	}
+
+	return tree.insertIntoParent(leaf.ParentBlock, promoteKey, rightBlockNum)
+}
+
+func (tree *BTree) createNewRoot(leftBlockNum int, rightBlockNum int, key int) error {
+	
+	//allocate block for the new node and create the root
+	rootBlockNum := tree.allocateBlock()
+
+	root := &Node{
+		IsLeaf: false,
+		NumKeys: 1,
+		Keys: make([]int, tree.Order),
+		ChildBlocks: make([]int, tree.Order + 1),
+		ParentBlock: -1,
+	}
+
+	root.Keys[0] = key
+	root.ChildBlocks[0] = leftBlockNum
+	root.ChildBlocks[1] = rightBlockNum
+
+	//write the root to the disk
+	err := tree.writeNode(rootBlockNum, root)
 
 	if err != nil {
 		return err
 	}
 
+	//get the left child and update its parent block to the new root
+	leftChild, _ := tree.readNode(leftBlockNum)
+	leftChild.ParentBlock = rootBlockNum
+	tree.writeNode(leftBlockNum, leftChild)
+
+	//get the right child and update its parent block to the new root
+	rightChild, _ := tree.readNode(rightBlockNum)
+	rightChild.ParentBlock = rootBlockNum
+	tree.writeNode(rightBlockNum, rightChild)
+
+	tree.RootBlockNum = rootBlockNum
+	tree.Height++
+
+	return nil
+}
+
+func (tree *BTree) insertIntoParent(parentBlockNum int, key int, rightChildBlockNum int) error {
+	//take a key and insert it into the parent 
+
+	parent, err := tree.readNode(parentBlockNum)
+
+	if err != nil {
+		return err
+	}
+
+	i := sort.SearchInts(parent.Keys[:parent.NumKeys], key) //finding the index of where the key should be placed in the parent keys
+
+	for j := parent.NumKeys; j > i; j-- {
+		parent.Keys[j] = parent.Keys[j-1] //shift all existing keys over to the right
+		parent.ChildBlocks[j+1] = parent.ChildBlocks[j]
+	}
+
+	parent.Keys[i] = key
+	parent.ChildBlocks[i + 1] = rightChildBlockNum
+	parent.NumKeys++
+
+	rightChild, _ := tree.readNode(rightChildBlockNum)
+	rightChild.ParentBlock = parentBlockNum
+	tree.writeNode(rightChildBlockNum, rightChild)
+	
+	err = tree.writeNode(parentBlockNum, parent)
+	if err != nil {
+		return err
+	}
+
+	if parent.NumKeys > tree.Order-1 {
+		return tree.splitInternal(parentBlockNum, parent)
+	}
+
+	return nil
 }
 
 
