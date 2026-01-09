@@ -322,6 +322,53 @@ func (tree *BTree) splitInternal(nodeBlockNum int, node *Node) error {
 
 }
 
+func (tree *BTree) Delete(key int) (bool, error) {
+
+	//empty tree
+	if tree.RootBlockNum == -1 {
+		return false, nil
+	}
+
+	leafBlockNum, err := tree.findLeafBlock(key) //get the block number of the key we are trying to delete
+
+	if err != nil {
+		return false, err
+	}
+
+	leaf, err := tree.readNode(leafBlockNum) //deserialize the block into a leaf node object in memory
+
+
+	i := sort.SearchInts(leaf.Keys[:leaf.NumKeys], key) //find the index where the key is 
+
+	if i >= leaf.NumKeys || leaf.Keys[i] != key {
+		return false, nil //key is not found
+	}
+
+
+	for j := i; j < leaf.NumKeys - 1; j++ {
+		leaf.Keys[j] = leaf.Keys[j + 1] //overwrite the key 
+		leaf.Values[j] = leaf.Values[j + 1]
+	}
+
+	leaf.NumKeys--
+	tree.Size--
+
+
+	err = tree.writeNode(leafBlockNum, leaf)
+
+	if err != nil {
+		return false, err
+	}
+
+	if leafBlockNum == tree.RootBlockNum && leaf.NumKeys == 0 {  //tree is now empty
+		tree.RootBlockNum = -1
+		tree.Height = 0
+	}
+
+	return true, nil
+
+}
+
 
 
 
