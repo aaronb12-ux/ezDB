@@ -24,10 +24,10 @@ type ReadWriteLogEntry struct {
 
 }
 
-func NewFileMgr(blocksize int) *Filemgr {
+func NewFileMgr(blocksize int, filename string) *Filemgr {
 	return &Filemgr{
 		blocksize: blocksize,
-		filename: "simple.db",
+		filename: filename,
 	}
 }
 
@@ -63,8 +63,6 @@ func (fm *Filemgr) Read(blk *BlockID, p *Page) error {
 
 
 	fm.readLog = append(fm.readLog, newReadEntry)
-
-	fmt.Printf("we just read the bytes %v", string(p.bytes))
 	
 	return nil
 }
@@ -72,7 +70,6 @@ func (fm *Filemgr) Read(blk *BlockID, p *Page) error {
 
 func (fm *Filemgr) Write(blk *BlockID, p *Page) error {
 
-	fmt.Println("the page bytes are", p.Bytes())
 
 	f := fm.OpenFile(fm.filename) //open the file
 

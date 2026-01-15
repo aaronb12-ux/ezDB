@@ -8,7 +8,7 @@ import (
 
 func TestWriteAndReadToFileOneBlock(t *testing.T) {
 
-	filemgr := filemanager.NewFileMgr(5)
+	filemgr := filemanager.NewFileMgr(5, "test")
 
 	block1 := filemanager.MakeBlock("simple.db", 0) //database file and block number
 
@@ -45,7 +45,7 @@ func TestWriteAndReadMultipleBlock(t *testing.T) {
 
 	//assume everything works... no need for error handling this this test until final check
 
-	filemgr := filemanager.NewFileMgr(5) 
+	filemgr := filemanager.NewFileMgr(5, "test") 
 
 
 	block0 := filemanager.MakeBlock("simple.db", 0)
@@ -81,7 +81,7 @@ func TestWriteAndReadMultipleBlock(t *testing.T) {
 
 func TestReadWriteOffset(t *testing.T) {
 
-	filemgr := filemanager.NewFileMgr(10) 
+	filemgr := filemanager.NewFileMgr(10, "test") 
 
 	block0 := filemanager.MakeBlock("simple.db", 0)
 	block1 := filemanager.MakeBlock("simple.db", 1)
