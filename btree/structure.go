@@ -14,12 +14,6 @@ type BTree struct {
 	NextBlock  int //next available block
 }
 
-//keys exists within Nodes
-type Key struct {
-	Key   int 
-	Value []byte
-}
-
 //this struct represents a single node in the B+ tree
 type Node struct {
 	IsLeaf      bool
