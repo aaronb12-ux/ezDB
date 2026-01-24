@@ -14,7 +14,6 @@ type BTree struct {
 	NextBlock  int //next available block
 }
 
-
 //this struct represents a single node in the B+ tree
 type Node struct {
 	IsLeaf      bool

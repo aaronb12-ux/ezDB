@@ -19,6 +19,3 @@ func TestCreateDB(t *testing.T) {
 		t.Fatal("failed making tree")
 	}
 }
-
-
-

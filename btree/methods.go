@@ -33,30 +33,28 @@ func (tree *BTree) Get(key int) ([]byte, bool, error) {
 
 }
 
-//traverses the tree to find the leaf block (node) where a key should be
+//traverses the tree to find the leaf block where a key should be
 func (tree *BTree) findLeafBlock(key int) (int, error) {
 
-	blockNum := tree.RootBlockNum //begin at the first block for the search
+	blockNum := tree.RootBlockNum
 
 	for {
-		node, err := tree.readNode(blockNum) //read current node from the disk
+		node, err := tree.readNode(blockNum) //take data at the block number and read it into a node object
 		if err != nil {
 			return -1, err
 		}
 
-		if node.IsLeaf { //if we have reached a leaf, we are done and return the block number
+		if node.IsLeaf { //if we have reached a leaf, we are done
 			return blockNum, nil
 		}
 
-		//if not leaf, we have internal node. must find which child to follow
-		//sort.SearchInts returns the index of where they key should be inserted -> which means it lets us know which child to follow
 		i := sort.SearchInts(node.Keys[:node.NumKeys], key)
 
 		if i > node.NumKeys { //make sure we don't go out of bounds
 			i = node.NumKeys
 		}
 
-		blockNum = node.ChildBlocks[i] //update blockNumber to for search continuation
+		blockNum = node.ChildBlocks[i]
 	}
 }
 
@@ -97,7 +95,7 @@ func (tree *BTree) Insert(key int, value []byte) error {
 		return err
 	}
 
-	leaf, err := tree.readNode(leafBlockNum) //take the block data from the disk and read it into a page which is then deserialized to a node
+	leaf, err := tree.readNode(leafBlockNum) //take the block data from the disk and read it into a page which is then converted to a node
 
 	if err != nil {
 		return err
@@ -181,6 +179,7 @@ func (tree *BTree) splitLeaf(leafBlockNum int, leaf *Node) error {
 	err = tree.writeNode(rightBlockNum, rightLeaf) //write the new split leaf to the disk at its blkck number
 
 	promoteKey := rightLeaf.Keys[0] //take the first key in the new split right node and move it to the parent
+
 
 	if leaf.ParentBlock == -1 {
 		//promote key is now the root
@@ -323,7 +322,6 @@ func (tree *BTree) splitInternal(nodeBlockNum int, node *Node) error {
 
 }
 
-
 func (tree *BTree) Delete(key int) (bool, error) {
 
 	//empty tree
@@ -370,4 +368,6 @@ func (tree *BTree) Delete(key int) (bool, error) {
 	return true, nil
 
 }
+
+
 

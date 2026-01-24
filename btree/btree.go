@@ -103,7 +103,7 @@ func (tree *BTree) serializeNode(node *Node, page *filemanager.Page) error {
 		} 
 	} else {
 
-		for i := 0; i <= node.NumKeys; i++ {
+		for i := 0; i < node.NumKeys; i++ {
 
 			childBlockBytes := make([]byte, INT_SIZE)
 
@@ -151,7 +151,7 @@ func (tree *BTree) deserializeNode(page *filemanager.Page) (*Node, error) {
 
 	//allocate full order size for keys
 
-	node.Keys = make([]int, tree.Order) //node has max order - 1 keys
+	node.Keys = make([]int, tree.Order)
 
 	//read the keys
 	for i := 0; i < node.NumKeys; i ++ {
@@ -178,12 +178,12 @@ func (tree *BTree) deserializeNode(page *filemanager.Page) (*Node, error) {
 			//reading the value itself
 			node.Values[i] = make([]byte, valLength)
 			page.Read(offset, node.Values[i])
-			offset += int(valLength)
+			offset += INT_SIZE
 		}
 	} else {
 
 		//allocate space for child blocks
-		node.ChildBlocks = make([]int, tree.Order + 1) //a node has max order children
+		node.ChildBlocks = make([]int, tree.Order + 1)
 
 		for i := 0; i <= node.NumKeys; i++ {
 			
@@ -240,3 +240,5 @@ func (tree *BTree) readNode(blocknum int) (*Node, error) {
 	return tree.deserializeNode(page)
 
 }
+
+
