@@ -16,7 +16,7 @@ func main() {
 	e1 := db.Put(1, []byte("coolness"))
 
 	if e1 != nil {
-		log.Fatalf("error", e1)
+		log.Fatal("error", e1)
 	}
 
 	val, _ := db.Get(1)
@@ -26,7 +26,7 @@ func main() {
 	e2 := db.Put(1, []byte("cosmo"))
 
 	if e2 != nil {
-		log.Fatalf("error", e2)
+		log.Fatal("error", e2)
 	}
 
 }

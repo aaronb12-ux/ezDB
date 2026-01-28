@@ -1,7 +1,7 @@
 package btree
 
 import (
-	"aaron/simpleDB/filemanager"
+	"aaron/ezDB/filemanager"
 )
 
 //BTree represents a B+ tree that persists to disk

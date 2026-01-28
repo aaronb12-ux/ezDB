@@ -1,8 +1,8 @@
 package btree_test
 
 import (
-	"aaron/simpleDB/filemanager"
-	"aaron/simpleDB/btree"
+	"aaron/ezDB/filemanager"
+	"aaron/ezDB/btree"
 	"testing"
 	"fmt"
 

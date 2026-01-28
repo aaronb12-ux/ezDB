@@ -365,6 +365,8 @@ func (tree *BTree) Delete(key int) (bool, error) {
 		tree.Height = 0
 	}
 
+	//check for borrowing?
+
 	return true, nil
 
 }

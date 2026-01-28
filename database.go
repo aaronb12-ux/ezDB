@@ -3,8 +3,8 @@ package main
 
 import (
 	"errors"
-	"aaron/simpleDB/btree"
-	"aaron/simpleDB/filemanager"
+	"aaron/ezDB/btree"
+	"aaron/ezDB/filemanager"
 )
 
 type Database struct {
