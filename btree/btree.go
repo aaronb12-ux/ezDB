@@ -127,7 +127,12 @@ func (tree *BTree) deserializeNode(page *filemanager.Page) (*Node, error) {
 	//reading the leaf byte from the page
 	isLeafBytes := make([]byte, 1)
 	page.Read(offset, isLeafBytes)
-	node.IsLeaf = isLeafBytes[0] == 1
+
+	if isLeafBytes[0] == 1 {
+		node.IsLeaf = true
+	} else {
+		node.IsLeaf = false
+	}
 	offset += 1
 
 	//Read NumKeys

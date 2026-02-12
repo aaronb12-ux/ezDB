@@ -2,6 +2,7 @@ package btree
 
 import (
 	"sort"
+	"fmt"
 
 )
 
@@ -371,5 +372,23 @@ func (tree *BTree) Delete(key int) (bool, error) {
 
 }
 
+func (tree *BTree) PrintTree()  (bool, error) {
+
+	start := tree.RootBlockNum
+	
+	for {
+		node, err := tree.readNode(start)
+
+
+	}
+	//traverse down to the lowest value in the b+ tree in the leaf.
+	//then do a range query across all the left nodes and print their key value pairs
+}
+
+
+func (tree *BTree) FindMinBlock() (int, error) {
+	//finds the minimum
+	
+}
 
 
