@@ -29,6 +29,7 @@ func Open(filename string, blockSize int, order int) (*Database, error) {
 
 
 func (db *Database) Put(key int, value []byte) error {
+
 	if value == nil {
 		return errors.New("value cannot be nil")
 	}
@@ -40,6 +41,10 @@ func (db *Database) Put(key int, value []byte) error {
 	}
 
 	return nil
+}
+
+func (db *Database) ShowAll() {
+	db.tree.PrintTree()
 }
 
 func (db *Database) Get(key int) ([]byte, bool) {

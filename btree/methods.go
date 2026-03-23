@@ -3,6 +3,7 @@ package btree
 import (
 	"sort"
 	"fmt"
+	"bytes"
 
 )
 
@@ -366,7 +367,7 @@ func (tree *BTree) Delete(key int) (bool, error) {
 		tree.Height = 0
 	}
 
-	//check for borrowing?
+	//check for borrowing and merging...
 
 	return true, nil
 
@@ -374,20 +375,49 @@ func (tree *BTree) Delete(key int) (bool, error) {
 
 func (tree *BTree) PrintTree()  (bool, error) {
 
-	start := tree.RootBlockNum
+
+	minNode := tree.FindMinNode()
 	
-	for {
-		node, err := tree.readNode(start)
+	for _, key := range minNode.Keys {
+		fmt.Printf("at key %d", key)
+		
+}
 
+	
 
-	}
+	separator := []byte(" ")
+
+	joinedBytes := bytes.Join(minNode.Values, separator)
+
+	fmt.Println(string(joinedBytes))
 	//traverse down to the lowest value in the b+ tree in the leaf.
 	//then do a range query across all the left nodes and print their key value pairs
+	//once we print the current node data and value, do the same on the next block and repeat
+	return true, nil
 }
 
 
-func (tree *BTree) FindMinBlock() (int, error) {
-	//finds the minimum
+func (tree *BTree) FindMinNode() (Node) {
+	
+	node, err := tree.readNode(tree.RootBlockNum) //get the current (root) node
+
+	if err != nil {
+		fmt.Errorf("failed to read in root node in findminnode function %v", err)
+	}
+
+	for {
+		
+		if node.IsLeaf {
+			return *node
+
+		} else if len(node.ChildBlocks) > 0 { //node has children, traverse to the very left one
+			
+			block := node.ChildBlocks[0]
+
+			node, err = tree.readNode(block)
+		}
+	
+	}
 	
 }
 

@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	"fmt"
+	
 )
 
 func main() {
@@ -19,15 +19,21 @@ func main() {
 		log.Fatal("error", e1)
 	}
 
-	val, _ := db.Get(1)
-
-	fmt.Printf("we got the value %v", string(val))
-
-	e2 := db.Put(1, []byte("cosmo"))
+	e2 := db.Put(2, []byte("cosmo"))
 
 	if e2 != nil {
 		log.Fatal("error", e2)
 	}
+
+	e3 := db.Put(3, []byte("lol"))
+
+	if e3 != nil {
+		log.Fatal("error", e3)
+	}
+
+	ans = db.Get(3)
+
+	db.ShowAll()
 
 }
 
